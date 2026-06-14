@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+relay-frontend/node_modules
+relay-frontend/dist
