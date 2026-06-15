@@ -8,6 +8,7 @@ function RoomsPage() {
   const [newRoomName, setNewRoomName] = useState('')
   const [newRoomDesc, setNewRoomDesc] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
   const { username, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -26,6 +27,7 @@ function RoomsPage() {
 
   const handleCreateRoom = async (e) => {
     e.preventDefault()
+    setLoading(true)
     try {
       await api.post('/rooms', { name: newRoomName, description: newRoomDesc })
       setNewRoomName('')
@@ -33,16 +35,18 @@ function RoomsPage() {
       fetchRooms()
     } catch (err) {
       setError('Failed to create room')
+    } finally {
+      setLoading(false)
     }
   }
 
   const handleJoinRoom = async (roomId) => {
     try {
       await api.post(`/rooms/${roomId}/join`)
-      navigate(`/chat/${roomId}`)
     } catch (err) {
-      navigate(`/chat/${roomId}`)
+      // Si ya es miembro redirigimos igualmente
     }
+    navigate(`/chat/${roomId}`)
   }
 
   const handleLogout = () => {
@@ -52,18 +56,30 @@ function RoomsPage() {
 
   return (
     <div style={styles.container}>
+      {/* Header */}
       <div style={styles.header}>
-        <h1 style={styles.title}>Relay</h1>
+        <div style={styles.headerLeft}>
+          <span style={styles.logo}>⚡</span>
+          <span style={styles.brand}>Relay</span>
+        </div>
         <div style={styles.headerRight}>
-          <span style={styles.username}>👤 {username}</span>
-          <button style={styles.logoutButton} onClick={handleLogout}>Logout</button>
+          <div style={styles.userBadge}>
+            <div style={styles.avatar}>{username?.[0]?.toUpperCase()}</div>
+            <span style={styles.username}>{username}</span>
+          </div>
+          <button style={styles.logoutButton} onClick={handleLogout}>Sign out</button>
         </div>
       </div>
 
       <div style={styles.content}>
-        <div style={styles.createCard}>
-          <h2 style={styles.sectionTitle}>Create a room</h2>
-          {error && <p style={styles.error}>{error}</p>}
+        {/* Create room card */}
+        <div style={styles.card}>
+          <h2 style={styles.cardTitle}>
+            <span style={styles.cardIcon}>+</span> New Room
+          </h2>
+          {error && (
+            <div style={styles.errorBox}>⚠ {error}</div>
+          )}
           <form onSubmit={handleCreateRoom} style={styles.form}>
             <input
               style={styles.input}
@@ -80,26 +96,41 @@ function RoomsPage() {
               value={newRoomDesc}
               onChange={(e) => setNewRoomDesc(e.target.value)}
             />
-            <button style={styles.button} type="submit">Create</button>
+            <button style={loading ? styles.buttonDisabled : styles.button} type="submit" disabled={loading}>
+              {loading ? 'Creating...' : 'Create Room'}
+            </button>
           </form>
         </div>
 
-        <div style={styles.roomsCard}>
-          <h2 style={styles.sectionTitle}>Available rooms</h2>
+        {/* Rooms list */}
+        <div style={styles.card}>
+          <h2 style={styles.cardTitle}>
+            <span style={styles.cardIcon}>#</span> Available Rooms
+          </h2>
           {rooms.length === 0 ? (
-            <p style={styles.empty}>No rooms yet. Create one!</p>
+            <div style={styles.emptyState}>
+              <p style={styles.emptyText}>No rooms yet.</p>
+              <p style={styles.emptySubtext}>Create one to start chatting.</p>
+            </div>
           ) : (
-            rooms.map((room) => (
-              <div key={room.id} style={styles.roomItem}>
-                <div>
-                  <p style={styles.roomName}>{room.name}</p>
-                  {room.description && <p style={styles.roomDesc}>{room.description}</p>}
+            <div style={styles.roomList}>
+              {rooms.map((room) => (
+                <div key={room.id} style={styles.roomItem}>
+                  <div style={styles.roomInfo}>
+                    <div style={styles.roomDot} />
+                    <div>
+                      <p style={styles.roomName}>{room.name}</p>
+                      {room.description && (
+                        <p style={styles.roomDesc}>{room.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <button style={styles.joinButton} onClick={() => handleJoinRoom(room.id)}>
+                    Join →
+                  </button>
                 </div>
-                <button style={styles.joinButton} onClick={() => handleJoinRoom(room.id)}>
-                  Join
-                </button>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       </div>
@@ -108,25 +139,96 @@ function RoomsPage() {
 }
 
 const styles = {
-  container: { minHeight: '100vh', backgroundColor: '#f0f2f5' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem', backgroundColor: '#4f46e5', color: 'white' },
-  title: { margin: 0, fontSize: '1.5rem' },
+  container: { minHeight: '100vh', backgroundColor: 'var(--bg-primary)' },
+  header: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    padding: '1rem 2rem', borderBottom: '1px solid var(--border)',
+    background: 'rgba(15,15,19,0.8)', backdropFilter: 'blur(12px)',
+    position: 'sticky', top: 0, zIndex: 10
+  },
+  headerLeft: { display: 'flex', alignItems: 'center', gap: '0.5rem' },
+  logo: { fontSize: '1.4rem' },
+  brand: {
+    fontSize: '1.3rem', fontWeight: '800',
+    background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
+  },
   headerRight: { display: 'flex', alignItems: 'center', gap: '1rem' },
-  username: { fontSize: '0.95rem' },
-  logoutButton: { padding: '0.4rem 1rem', backgroundColor: 'transparent', color: 'white', border: '1px solid white', borderRadius: '6px', cursor: 'pointer' },
-  content: { maxWidth: '800px', margin: '2rem auto', padding: '0 1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' },
-  createCard: { background: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
-  roomsCard: { background: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
-  sectionTitle: { margin: '0 0 1rem 0', color: '#333' },
+  userBadge: { display: 'flex', alignItems: 'center', gap: '0.5rem' },
+  avatar: {
+    width: '32px', height: '32px', borderRadius: '50%',
+    background: 'var(--accent-gradient)', display: 'flex',
+    alignItems: 'center', justifyContent: 'center',
+    fontSize: '0.85rem', fontWeight: '700', color: 'white'
+  },
+  username: { color: 'var(--text-secondary)', fontSize: '0.9rem' },
+  logoutButton: {
+      padding: '0.4rem 1rem', background: '#1e1e2e',
+      color: 'var(--text-primary)', border: '1px solid var(--border)',
+      borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem'
+  },
+  content: {
+    maxWidth: '720px', margin: '2rem auto', padding: '0 1.5rem',
+    display: 'flex', flexDirection: 'column', gap: '1.5rem'
+  },
+  card: {
+    background: 'var(--bg-card)', border: '1px solid var(--border)',
+    borderRadius: 'var(--radius-lg)', padding: '1.75rem',
+    backdropFilter: 'blur(12px)', boxShadow: 'var(--shadow-sm)'
+  },
+  cardTitle: {
+    fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)',
+    marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem'
+  },
+  cardIcon: {
+    width: '28px', height: '28px', background: 'var(--accent-gradient)',
+    borderRadius: 'var(--radius-sm)', display: 'inline-flex',
+    alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', color: 'white'
+  },
+  errorBox: {
+    background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+    borderRadius: 'var(--radius-sm)', padding: '0.75rem 1rem',
+    color: '#f87171', fontSize: '0.875rem', marginBottom: '1rem'
+  },
   form: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
-  input: { padding: '0.75rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '1rem' },
-  button: { padding: '0.75rem', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', fontSize: '1rem', cursor: 'pointer' },
-  error: { color: 'red', marginBottom: '0.5rem' },
-  empty: { color: '#999', textAlign: 'center' },
-  roomItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderBottom: '1px solid #eee' },
-  roomName: { margin: 0, fontWeight: 'bold', color: '#333' },
-  roomDesc: { margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#666' },
-  joinButton: { padding: '0.4rem 1rem', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }
+  input: {
+    padding: '0.875rem 1rem', borderRadius: 'var(--radius-sm)',
+    border: '1px solid var(--border)', background: 'rgba(255,255,255,0.04)',
+    color: 'var(--text-primary)', fontSize: '0.95rem', outline: 'none'
+  },
+  button: {
+    padding: '0.875rem', background: 'var(--accent-gradient)',
+    color: 'white', border: 'none', borderRadius: 'var(--radius-sm)',
+    fontSize: '0.9rem', fontWeight: '600', cursor: 'pointer',
+    boxShadow: 'var(--shadow-accent)'
+  },
+  buttonDisabled: {
+    padding: '0.875rem', background: 'var(--accent-gradient)',
+    color: 'white', border: 'none', borderRadius: 'var(--radius-sm)',
+    fontSize: '0.9rem', fontWeight: '600', cursor: 'not-allowed', opacity: 0.5
+  },
+  emptyState: { textAlign: 'center', padding: '2rem 0' },
+  emptyText: { color: 'var(--text-secondary)', marginBottom: '0.25rem' },
+  emptySubtext: { color: 'var(--text-muted)', fontSize: '0.85rem' },
+  roomList: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
+  roomItem: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    padding: '1rem', borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)',
+    transition: 'background 0.2s'
+  },
+  roomInfo: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
+  roomDot: {
+    width: '8px', height: '8px', borderRadius: '50%',
+    background: 'var(--accent-gradient)', flexShrink: 0
+  },
+  roomName: { fontWeight: '500', color: 'var(--text-primary)', marginBottom: '0.15rem' },
+  roomDesc: { fontSize: '0.8rem', color: 'var(--text-muted)' },
+  joinButton: {
+      padding: '0.4rem 1rem', background: 'var(--accent-purple)',
+      color: 'white', border: 'none',
+      borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem',
+      fontWeight: '500', flexShrink: 0
+  }
 }
 
 export default RoomsPage

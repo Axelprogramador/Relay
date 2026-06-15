@@ -71,12 +71,14 @@ public class RoomController {
                         m.getId(),
                         m.getContent(),
                         m.getSenderId(),
+                        m.getSenderUsername(), // añadir
                         m.getSentAt().toString()))
                 .toList();
         return ResponseEntity.ok(messages);
     }
 
+
+    record MessageResponse(Long id, String content, Long senderId, String senderUsername, String sentAt) {}
     record CreateRoomRequest(String name, String description) {}
     record RoomResponse(Long id, String name, String description) {}
-    record MessageResponse(Long id, String content, Long senderId, String sentAt) {}
 }
