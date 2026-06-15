@@ -9,6 +9,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import java.security.Principal;
 
 @Controller
 public class ChatWebSocketController {
@@ -24,15 +25,16 @@ public class ChatWebSocketController {
     @MessageMapping("/chat/{roomId}")
     public void sendMessage(@DestinationVariable Long roomId,
                             @Payload MessageRequest request,
-                            @AuthenticationPrincipal UserDetails userDetails) {
+                            Principal principal) {
 
-        Long userId = userRepository.findByUsername(userDetails.getUsername())
+        Long userId = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"))
                 .getId();
 
         Message message = new Message();
         message.setContent(request.content());
         message.setSenderId(userId);
+        message.setSenderUsername(principal.getName());
         message.setRoomId(roomId);
 
         messageUseCase.sendMessage(message);

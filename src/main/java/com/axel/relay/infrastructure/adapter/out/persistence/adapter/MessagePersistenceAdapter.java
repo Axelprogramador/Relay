@@ -37,6 +37,7 @@ public class MessagePersistenceAdapter implements MessageRepository {
                 message.getId(),
                 message.getContent(),
                 message.getSenderId(),
+                message.getSenderUsername(), // añadido
                 message.getRoomId(),
                 message.getSentAt()
         );
@@ -47,6 +48,7 @@ public class MessagePersistenceAdapter implements MessageRepository {
                 entity.getId(),
                 entity.getContent(),
                 entity.getSenderId(),
+                entity.getSenderUsername(), // añadido
                 entity.getRoomId(),
                 entity.getSentAt()
         );

@@ -119,4 +119,14 @@ const styles = {
   roomsCard: { background: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
   sectionTitle: { margin: '0 0 1rem 0', color: '#333' },
   form: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
-  input: { padding: '0.75rem', borderRadius: '6px', border:
+  input: { padding: '0.75rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '1rem' },
+  button: { padding: '0.75rem', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', fontSize: '1rem', cursor: 'pointer' },
+  error: { color: 'red', marginBottom: '0.5rem' },
+  empty: { color: '#999', textAlign: 'center' },
+  roomItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderBottom: '1px solid #eee' },
+  roomName: { margin: 0, fontWeight: 'bold', color: '#333' },
+  roomDesc: { margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#666' },
+  joinButton: { padding: '0.4rem 1rem', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }
+}
+
+export default RoomsPage

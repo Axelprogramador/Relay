@@ -23,12 +23,16 @@ public class MessageEntity {
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
 
+    @Column(name = "sender_username", nullable = false)
+    private String senderUsername;
+
     public MessageEntity() {}
 
-    public MessageEntity(Long id, String content, Long senderId, Long roomId, LocalDateTime sentAt) {
+    public MessageEntity(Long id, String content, Long senderId, String senderUsername, Long roomId, LocalDateTime sentAt) {
         this.id = id;
         this.content = content;
         this.senderId = senderId;
+        this.senderUsername = senderUsername;
         this.roomId = roomId;
         this.sentAt = sentAt;
     }
@@ -47,4 +51,7 @@ public class MessageEntity {
 
     public LocalDateTime getSentAt() { return sentAt; }
     public void setSentAt(LocalDateTime sentAt) { this.sentAt = sentAt; }
+
+    public String getSenderUsername() { return senderUsername; }
+    public void setSenderUsername(String senderUsername) { this.senderUsername = senderUsername; }
 }
