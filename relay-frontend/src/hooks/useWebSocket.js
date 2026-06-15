@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 
-// Hook que gestiona conexión WebSocket con el backend
 export function useWebSocket(roomId, token) {
   const [messages, setMessages] = useState([])
   const clientRef = useRef(null)
@@ -17,6 +16,10 @@ export function useWebSocket(roomId, token) {
         client.subscribe(`/topic/chat/${roomId}`, (frame) => {
           const message = JSON.parse(frame.body)
           setMessages((prev) => [...prev, message])
+
+          if (document.hidden) {
+            notifyNewMessage(message)
+          }
         })
       },
       onStompError: (frame) => {
@@ -27,13 +30,38 @@ export function useWebSocket(roomId, token) {
     client.activate()
     clientRef.current = client
 
-    // Limpia conexion al salir de la sala
     return () => {
       client.deactivate()
     }
   }, [roomId, token])
 
-  // Envia un mensaje a través de WebSocket
+  const notifyNewMessage = (message) => {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          showNotification(message)
+        }
+      })
+    } else if (Notification.permission === 'granted') {
+      showNotification(message)
+    }
+  }
+
+  const showNotification = (message) => {
+    const notification = new Notification(`⚡ ${message.senderUsername}`, {
+      body: message.content,
+      icon: '/favicon.ico',
+      silent: false
+    })
+
+    notification.onclick = () => {
+      window.focus()
+      notification.close()
+    }
+
+    setTimeout(() => notification.close(), 4000)
+  }
+
   const sendMessage = (content) => {
     if (clientRef.current?.connected) {
       clientRef.current.publish({
