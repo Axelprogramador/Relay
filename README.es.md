@@ -1,4 +1,5 @@
 # ⚡ Relay
+> 🌐 [Read in English](README.md)
 
 Hice este proyecto para meterme de lleno en tecnologías que no había trabajado en profundidad — Kafka y React. Con Spring me siento cómodo, pero quería demostrar que puedo aprender herramientas nuevas y construir algo funcional con ellas. Esto no es un proyecto de tutorial, es una aplicación de chat real.
 

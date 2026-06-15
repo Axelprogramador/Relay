@@ -5,13 +5,15 @@ import { useWebSocket } from '../hooks/useWebSocket.js'
 import api from '../api/axios.js'
 import MessageList from '../components/MessageList.jsx'
 import MessageInput from '../components/MessageInput.jsx'
+import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 
 function ChatPage() {
   const { roomId } = useParams()
   const { token, username } = useAuth()
   const { messages, sendMessage } = useWebSocket(roomId, token)
   const [history, setHistory] = useState([])
-  const [roomName, setRoomName] = useState(`Room ${roomId}`)
+  const [onlineCount, setOnlineCount] = useState(0)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -26,6 +28,21 @@ function ChatPage() {
     fetchHistory()
   }, [roomId])
 
+  // Suscripción separada para recibir el conteo de usuarios online
+  useEffect(() => {
+    const client = new Client({
+      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      connectHeaders: { Authorization: `Bearer ${token}` },
+      onConnect: () => {
+        client.subscribe(`/topic/users/${roomId}`, (frame) => {
+          setOnlineCount(JSON.parse(frame.body))
+        })
+      }
+    })
+    client.activate()
+    return () => client.deactivate()
+  }, [roomId, token])
+
   const allMessages = [
     ...history,
     ...messages.filter(m => !history.find(h => h.id === m.id))
@@ -33,7 +50,6 @@ function ChatPage() {
 
   return (
     <div style={styles.container}>
-      {/* Header */}
       <div style={styles.header}>
         <div style={styles.headerLeft}>
           <button style={styles.backButton} onClick={() => navigate('/rooms')}>
@@ -42,8 +58,13 @@ function ChatPage() {
           <div style={styles.roomInfo}>
             <div style={styles.roomDot} />
             <div>
-              <h2 style={styles.roomName}>{roomName}</h2>
-              <span style={styles.roomStatus}>● Live</span>
+              <h2 style={styles.roomName}>Room {roomId}</h2>
+              <div style={styles.roomMeta}>
+                <span style={styles.roomStatus}>● Live</span>
+                {onlineCount > 0 && (
+                  <span style={styles.onlineCount}>{onlineCount} online</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -53,10 +74,7 @@ function ChatPage() {
         </div>
       </div>
 
-      {/* Messages */}
       <MessageList messages={allMessages} currentUsername={username} />
-
-      {/* Input */}
       <MessageInput onSend={sendMessage} />
     </div>
   )
@@ -77,8 +95,7 @@ const styles = {
   backButton: {
     background: 'transparent', color: 'var(--text-secondary)',
     border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
-    padding: '0.4rem 0.875rem', cursor: 'pointer', fontSize: '0.85rem',
-    transition: 'all 0.2s'
+    padding: '0.4rem 0.875rem', cursor: 'pointer', fontSize: '0.85rem'
   },
   roomInfo: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
   roomDot: {
@@ -87,7 +104,9 @@ const styles = {
     alignItems: 'center', justifyContent: 'center', fontSize: '1rem'
   },
   roomName: { fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)' },
+  roomMeta: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
   roomStatus: { fontSize: '0.75rem', color: '#4ade80' },
+  onlineCount: { fontSize: '0.75rem', color: 'var(--text-muted)' },
   userBadge: { display: 'flex', alignItems: 'center', gap: '0.5rem' },
   avatar: {
     width: '32px', height: '32px', borderRadius: '50%',

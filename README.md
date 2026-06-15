@@ -1,4 +1,5 @@
 # ⚡ Relay
+> 🌐 [Leer en español](README.es.md)
 
 I built Relay to push myself into technologies I hadn't worked with deeply before — Kafka and React. I'm comfortable with Spring, but I wanted to prove I can pick up new tools and build something real with them. This is a working real-time chat app, not a tutorial project.
 

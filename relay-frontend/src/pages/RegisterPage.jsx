@@ -18,8 +18,9 @@ function RegisterPage() {
       await api.post('/auth/register', { username, email, password })
       navigate('/login')
     } catch (err) {
-      setError('Registration failed. Email may already be in use.')
-    } finally {
+      const msg = err.response?.data?.message
+      setError(msg ?? 'Registration failed. Please try again.')
+    }finally {
       setLoading(false)
     }
   }

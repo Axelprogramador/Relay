@@ -21,8 +21,9 @@ public class UserUseCaseImpl implements UserUseCase {
 
     @Override
     public User register(User user) {
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email already in use");
+        if (userRepository.existsByEmail(user.getEmail()) ||
+                userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new RuntimeException("Username or email already in use");
         }
 
         // Hashing de la pass por seguridad
