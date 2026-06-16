@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import { hasUnreadMessages } from '../utils/readTracker.js'
 import api from '../api/axios.js'
 
 function RoomsPage() {
@@ -114,22 +115,28 @@ function RoomsPage() {
             </div>
           ) : (
             <div style={styles.roomList}>
-              {rooms.map((room) => (
-                <div key={room.id} style={styles.roomItem}>
-                  <div style={styles.roomInfo}>
-                    <div style={styles.roomDot} />
-                    <div>
-                      <p style={styles.roomName}>{room.name}</p>
-                      {room.description && (
-                        <p style={styles.roomDesc}>{room.description}</p>
-                      )}
+              {rooms.map((room) => {
+                const unread = hasUnreadMessages(room.id, room.lastMessageAt)
+                return (
+                  <div key={room.id} style={styles.roomItem}>
+                    <div style={styles.roomInfo}>
+                      <div style={unread ? styles.roomDotUnread : styles.roomDot} />
+                      <div>
+                        <p style={styles.roomName}>{room.name}</p>
+                        {room.description && (
+                          <p style={styles.roomDesc}>{room.description}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      {unread && <span style={styles.unreadBadge}>New</span>}
+                      <button style={styles.joinButton} onClick={() => handleJoinRoom(room.id)}>
+                        Join →
+                      </button>
                     </div>
                   </div>
-                  <button style={styles.joinButton} onClick={() => handleJoinRoom(room.id)}>
-                    Join →
-                  </button>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
@@ -162,9 +169,9 @@ const styles = {
   },
   username: { color: 'var(--text-secondary)', fontSize: '0.9rem' },
   logoutButton: {
-      padding: '0.4rem 1rem', background: '#1e1e2e',
-      color: 'var(--text-primary)', border: '1px solid var(--border)',
-      borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem'
+    padding: '0.4rem 1rem', background: '#1e1e2e',
+    color: 'var(--text-primary)', border: '1px solid var(--border)',
+    borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem'
   },
   content: {
     maxWidth: '720px', margin: '2rem auto', padding: '0 1.5rem',
@@ -221,13 +228,23 @@ const styles = {
     width: '8px', height: '8px', borderRadius: '50%',
     background: 'var(--accent-gradient)', flexShrink: 0
   },
+  roomDotUnread: {
+    width: '8px', height: '8px', borderRadius: '50%',
+    background: '#4ade80', flexShrink: 0,
+    boxShadow: '0 0 8px rgba(74,222,128,0.6)'
+  },
+  unreadBadge: {
+    fontSize: '0.7rem', fontWeight: '600', color: '#4ade80',
+    background: 'rgba(74,222,128,0.1)', padding: '0.2rem 0.5rem',
+    borderRadius: '4px', border: '1px solid rgba(74,222,128,0.3)'
+  },
   roomName: { fontWeight: '500', color: 'var(--text-primary)', marginBottom: '0.15rem' },
   roomDesc: { fontSize: '0.8rem', color: 'var(--text-muted)' },
   joinButton: {
-      padding: '0.4rem 1rem', background: 'var(--accent-purple)',
-      color: 'white', border: 'none',
-      borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem',
-      fontWeight: '500', flexShrink: 0
+    padding: '0.4rem 1rem', background: 'var(--accent-purple)',
+    color: 'white', border: 'none',
+    borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: '0.85rem',
+    fontWeight: '500', flexShrink: 0
   }
 }
 

@@ -30,7 +30,14 @@ public class RoomController {
     public ResponseEntity<List<RoomResponse>> getAllRooms() {
         List<RoomResponse> rooms = roomUseCase.getAllRooms()
                 .stream()
-                .map(r -> new RoomResponse(r.getId(), r.getName(), r.getDescription()))
+                .map(r -> {
+                    List<Message> roomMessages = messageUseCase.getMessagesByRoom(r.getId());
+                    String lastMessageAt = roomMessages.isEmpty()
+                            ? null
+                            : roomMessages.get(roomMessages.size() - 1).getSentAt().toString();
+                    int messageCount = roomMessages.size();
+                    return new RoomResponse(r.getId(), r.getName(), r.getDescription(), lastMessageAt, messageCount);
+                })
                 .toList();
         return ResponseEntity.ok(rooms);
     }
@@ -38,7 +45,6 @@ public class RoomController {
     @PostMapping
     public ResponseEntity<RoomResponse> createRoom(@RequestBody CreateRoomRequest request,
                                                    @AuthenticationPrincipal UserDetails userDetails) {
-        // Identifica ID usuario desde su username
         Long userId = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"))
                 .getId();
@@ -49,7 +55,7 @@ public class RoomController {
         room.setCreatedBy(userId);
 
         Room saved = roomUseCase.createRoom(room);
-        return ResponseEntity.ok(new RoomResponse(saved.getId(), saved.getName(), saved.getDescription()));
+        return ResponseEntity.ok(new RoomResponse(saved.getId(), saved.getName(), saved.getDescription(), null, 0));
     }
 
     @PostMapping("/{roomId}/join")
@@ -71,14 +77,13 @@ public class RoomController {
                         m.getId(),
                         m.getContent(),
                         m.getSenderId(),
-                        m.getSenderUsername(), // añadir
+                        m.getSenderUsername(),
                         m.getSentAt().toString()))
                 .toList();
         return ResponseEntity.ok(messages);
     }
 
-
     record MessageResponse(Long id, String content, Long senderId, String senderUsername, String sentAt) {}
+    record RoomResponse(Long id, String name, String description, String lastMessageAt, int messageCount) {}
     record CreateRoomRequest(String name, String description) {}
-    record RoomResponse(Long id, String name, String description) {}
 }

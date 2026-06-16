@@ -3,6 +3,20 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import api from '../api/axios.js'
 
+// Decodifica el payload del JWT manejando correctamente caracteres UTF-8
+// atob() por sí solo corrompe acentos y ñ, por eso necesitamos este paso extra
+function decodeJWT(token) {
+  const base64Url = token.split('.')[1]
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+  const jsonPayload = decodeURIComponent(
+    atob(base64)
+      .split('')
+      .map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+      .join('')
+  )
+  return JSON.parse(jsonPayload)
+}
+
 function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -18,7 +32,7 @@ function LoginPage() {
     try {
       const response = await api.post('/auth/login', { email, password })
       const token = response.data.token
-      const payload = JSON.parse(atob(token.split('.')[1]))
+      const payload = decodeJWT(token)
       login(token, payload.sub)
       navigate('/rooms')
     } catch (err) {

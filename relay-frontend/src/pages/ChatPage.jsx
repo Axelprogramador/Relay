@@ -6,6 +6,7 @@ import api from '../api/axios.js'
 import MessageList from '../components/MessageList.jsx'
 import MessageInput from '../components/MessageInput.jsx'
 import { Client } from '@stomp/stompjs'
+import { markRoomAsRead } from '../utils/readTracker.js'
 import SockJS from 'sockjs-client'
 
 function ChatPage() {
@@ -20,15 +21,17 @@ function ChatPage() {
     const fetchHistory = async () => {
       try {
         const response = await api.get(`/rooms/${roomId}/messages`)
+    console.log('Raw response:', response.data)
         setHistory(response.data)
       } catch (err) {
         console.error('Failed to load history', err)
       }
     }
     fetchHistory()
+    markRoomAsRead(roomId)
   }, [roomId])
 
-  // Suscripción separada para recibir el conteo de usuarios online
+
   useEffect(() => {
     const client = new Client({
       webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
