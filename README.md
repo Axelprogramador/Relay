@@ -48,7 +48,7 @@ If the backend crashes mid-delivery, the message stays in the Kafka topic and ge
 git clone https://github.com/axelprogramador/relay.git
 cd relay
 
-# 2. Start infrastructure
+# 2. Start infrastructure (PostgreSQL, Kafka and Zookeeper — all three are required)
 docker-compose up -d
 
 # 3. Start backend
@@ -62,6 +62,8 @@ npm run dev
 
 Frontend → http://localhost:5173  
 Backend → http://localhost:8080
+
+> ⚠️ Both Kafka and Zookeeper need to be running for the backend to start correctly. If you stop and restart Docker, double check with `docker ps` that the `relay_kafka` container is up before starting the backend — Kafka can occasionally fail to start on its own and may need `docker-compose up -d kafka` separately.
 
 ---
 
