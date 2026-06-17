@@ -1,4 +1,5 @@
 # ⚡ Relay
+
 > 🌐 [Read in English](README.md)
 
 Hice este proyecto para meterme de lleno en tecnologías que no había trabajado en profundidad — Kafka y React. Con Spring me siento cómodo, pero quería demostrar que puedo aprender herramientas nuevas y construir algo funcional con ellas. Esto no es un proyecto de tutorial, es una aplicación de chat real.
@@ -70,6 +71,9 @@ Backend → http://localhost:8080
 - Crear y unirse a salas de chat
 - Mensajería en tiempo real a través de Kafka + WebSocket
 - Historial de mensajes al entrar a una sala
+- Conteo de usuarios conectados en tiempo real por sala
+- Notificaciones del navegador para mensajes nuevos cuando la pestaña no está activa
+- Indicador de mensajes no leídos en la lista de salas
 - Rutas protegidas
 - Interfaz en modo oscuro
 
@@ -104,7 +108,8 @@ relay/
         ├── components/
         ├── context/
         ├── hooks/
-        └── pages/
+        ├── pages/
+        └── utils/
 ```
 
 ---

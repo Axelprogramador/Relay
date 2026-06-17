@@ -1,4 +1,5 @@
 # ⚡ Relay
+
 > 🌐 [Leer en español](README.es.md)
 
 I built Relay to push myself into technologies I hadn't worked with deeply before — Kafka and React. I'm comfortable with Spring, but I wanted to prove I can pick up new tools and build something real with them. This is a working real-time chat app, not a tutorial project.
@@ -70,6 +71,9 @@ Backend → http://localhost:8080
 - Create and join chat rooms
 - Real-time messaging through Kafka + WebSocket
 - Message history on room entry
+- Live online user count per room
+- Browser notifications for new messages when the tab is inactive
+- Unread message indicator on the rooms list
 - Protected routes
 - Dark mode UI
 
@@ -104,7 +108,8 @@ relay/
         ├── components/
         ├── context/
         ├── hooks/
-        └── pages/
+        ├── pages/
+        └── utils/
 ```
 
 ---
