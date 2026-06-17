@@ -20,10 +20,11 @@ public class MessageKafkaConsumer {
 
     @KafkaListener(topics = "chat.messages", groupId = "relay-group")
     public void consume(String payload) {
+        System.out.println("Mensaje consumido de Kafka: " + payload);
         try {
             Message message = objectMapper.readValue(payload, Message.class);
+            System.out.println("Enviando por WebSocket a: /topic/chat/" + message.getRoomId());
 
-            // Envía el mensaje por WebSocket a todos los usuarios suscritos en el mismo chat
             messagingTemplate.convertAndSend(
                     "/topic/chat/" + message.getRoomId(),
                     message

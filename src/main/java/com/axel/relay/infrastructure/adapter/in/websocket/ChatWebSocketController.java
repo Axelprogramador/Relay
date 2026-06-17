@@ -30,22 +30,17 @@ public class ChatWebSocketController {
     @MessageMapping("/chat/{roomId}")
     public void sendMessage(@DestinationVariable Long roomId,
                             @Payload MessageRequest request,
-                            Principal principal,
-                            SimpMessageHeaderAccessor headerAccessor) {
+                            Principal principal) {
+        System.out.println("sendMessage llamado por: " + principal.getName() + " en sala: " + roomId);
 
-        String username = principal.getName();
-        String sessionId = headerAccessor.getSessionId();
-
-        Long userId = userRepository.findByUsername(username)
+        Long userId = userRepository.findByUsername(principal.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"))
                 .getId();
-
-        eventListener.userJoinedRoom(sessionId, username, roomId.toString());
 
         Message message = new Message();
         message.setContent(request.content());
         message.setSenderId(userId);
-        message.setSenderUsername(username);
+        message.setSenderUsername(principal.getName());
         message.setRoomId(roomId);
 
         messageUseCase.sendMessage(message);

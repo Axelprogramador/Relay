@@ -4,6 +4,7 @@ import SockJS from 'sockjs-client'
 
 export function useWebSocket(roomId, token) {
   const [messages, setMessages] = useState([])
+  const [onlineCount, setOnlineCount] = useState(0)
   const clientRef = useRef(null)
 
   useEffect(() => {
@@ -13,6 +14,10 @@ export function useWebSocket(roomId, token) {
         Authorization: `Bearer ${token}`
       },
       onConnect: () => {
+        client.subscribe(`/topic/users/${roomId}`, (frame) => {
+          setOnlineCount(JSON.parse(frame.body))
+        })
+
         client.subscribe(`/topic/chat/${roomId}`, (frame) => {
           const message = JSON.parse(frame.body)
           setMessages((prev) => [...prev, message])
@@ -71,5 +76,5 @@ export function useWebSocket(roomId, token) {
     }
   }
 
-  return { messages, sendMessage }
+  return { messages, sendMessage, onlineCount }
 }

@@ -5,23 +5,19 @@ import { useWebSocket } from '../hooks/useWebSocket.js'
 import api from '../api/axios.js'
 import MessageList from '../components/MessageList.jsx'
 import MessageInput from '../components/MessageInput.jsx'
-import { Client } from '@stomp/stompjs'
 import { markRoomAsRead } from '../utils/readTracker.js'
-import SockJS from 'sockjs-client'
 
 function ChatPage() {
   const { roomId } = useParams()
   const { token, username } = useAuth()
-  const { messages, sendMessage } = useWebSocket(roomId, token)
+  const { messages, sendMessage, onlineCount } = useWebSocket(roomId, token)
   const [history, setHistory] = useState([])
-  const [onlineCount, setOnlineCount] = useState(0)
   const navigate = useNavigate()
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
         const response = await api.get(`/rooms/${roomId}/messages`)
-    console.log('Raw response:', response.data)
         setHistory(response.data)
       } catch (err) {
         console.error('Failed to load history', err)
@@ -30,21 +26,6 @@ function ChatPage() {
     fetchHistory()
     markRoomAsRead(roomId)
   }, [roomId])
-
-
-  useEffect(() => {
-    const client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
-      connectHeaders: { Authorization: `Bearer ${token}` },
-      onConnect: () => {
-        client.subscribe(`/topic/users/${roomId}`, (frame) => {
-          setOnlineCount(JSON.parse(frame.body))
-        })
-      }
-    })
-    client.activate()
-    return () => client.deactivate()
-  }, [roomId, token])
 
   const allMessages = [
     ...history,
